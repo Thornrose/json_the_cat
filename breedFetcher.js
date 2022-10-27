@@ -1,26 +1,30 @@
 const request = require("request");
 
-const userArg = process.argv[2];
 // console.log(userArg);
+const fetchBreedDescription = function(breedName, callback) {
+  request(`https://api.thecatapi.com/v1/breeds/search?q=${breedName}`, (error, response, body) => {
+  // was using ?name=, mentor advised can also use ?q= for search "query"
 
-request(`https://api.thecatapi.com/v1/breeds/search?q=${userArg}`, (error, response, body) => {
-  // mentor advised can also use ?q= for search "query"
-  console.log(error);
-  if (error) {
-    throw new Error("There was an error:", error.description);
-  }
-  const data = JSON.parse(body);
-  // console.log(data);
-  if (!data[0]) {
-    return console.log("breed not found");
-  } else if (data) {
-    const searchCheck = userArg.toLowerCase();
-    const nameCheck = data[0]["name"].toLowerCase();
-    if (nameCheck !== searchCheck) {
-      return console.log("Request failed");
+    if (error) {
+      callback(error, null);
+      return;
     }
-  }
+    const data = JSON.parse(body);
+    // console.log(data);
+    if (data.length === 0) { // data[0] did work but -
+      callback("breed not found", null);
+      return;
+    }
+    // const searchCheck = userArg.toLowerCase(); // edge case - if search string is not exact
+    // const nameCheck = data[0]["name"].toLowerCase();
+    // if (nameCheck !== searchCheck) {
+    //   console.log("Request failed"); // updated would be callback("Request failed", null);
+    //   return;
+    // }
 
-  console.log(data[0]["description"]); //accessing the object
+    callback(null, data[0]["description"]); //accessing the object - will still display if search term is partial
 
-});
+  });
+};
+
+module.exports = { fetchBreedDescription };
